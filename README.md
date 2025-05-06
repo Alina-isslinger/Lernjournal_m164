@@ -245,7 +245,7 @@ Wenn mehrere Oberelemente zugelassen sind (z. B. mehrere Projektleiter), handelt
 ## Stücklistenproblem
 Eine klassische Anwendung der Rekursion in der Datenmodellierung ist die Stücklistenproblematik. Bei modularen Produkten, die sich aus mehreren Einzelteilen zusammensetzen, wird eine Tabelle benötigt, die angibt, welche Teile in welchem Produkt enthalten sind. Diese Beziehung muss rekursiv dargestellt werden, um die Bauteile auf die elementare Ebene herunterzubrechen.
 ## SQL Code für Mehrfachbeziehungen und Rekursion
-```sql
+^^```sql
 CREATE TABLE tbl_Fahrten_Orte (
     FahrtID INT,
     OrtID INT,
@@ -259,7 +259,441 @@ CREATE TABLE tbl_Mitarbeiter (
     FS_Vorgesetzter INT,  
     FOREIGN KEY (FS_Vorgesetzter) REFERENCES tbl_Mitarbeiter(ID)
 );
+# Tag 4
+## Mengenlehre
+### Aufgabe 1
+Gegeben  
+A = {c, e, z, r, d, g, u, x}
+B = {c, e, g}
+C = {r, d, g, t}
+D = {e, z, u}
+E = {z, r, u}
+Beurteilung der Teilmengen-Beziehungen:  
+- **a** B ⊂ A  Richtig (c, e, g ∈ A)  
+- **b** C ⊂ A  Falsch (t ∉ A)  
+- **c** E ⊂ A  Richtig (z, r, u ∈ A)  
+- **d** B ⊂ C  Falsch (c, e ∉ C)  
+- **e** E ⊂ C  Falsch (z, u ∉ C)  
+### Aufgabe 2
+Gegeben  
+A = {1, 2, 3, 4, 5}
+B = {2, 5}
+C = {3, 5, 7, 9}
+a **A ∩ B**  
+{2, 5}
+b **A ∪ C**  
+{1, 2, 3, 4, 5, 7, 9}
+c **Bc** (Komplement von B in A, also A \ B)  
+{1, 3, 4}
+d **B \ C**  
+{2}
+e **C \ B**  
+{3, 7, 9}
+---
+### Aufgabe 3
+Eigene Beispiele mit bezeichnenden Mengen:
+ **⊂ (Teilmenge)**  
+   - Mengen:  
+     ```
+     Nahrungsmittel = { Obst, Süssigkeiten, Fisch, Getreide }
+     Pflanzliches    = { Obst, Getreide }
+     ```  
+   - Beziehung:  
+     ```
+     Pflanzliches ⊂ Nahrungsmittel
+     ```
+ **∩ (Schnittmenge)**  
+   - Mengen:  
+     ```
+     Obst           = { Birne, Weintraube, Erdbeere }
+     RotFrüchte   = { Erdebere, Himmbeere, Apfel }
+     ```  
+   - Schnittmenge:  
+     ```
+     Obst ∩ GelbeFrüchte = { Erdbeere }
+     ```
+# Tag 6
+## SubQueries
+```sql
+SELECT * 
+FROM buecher b 
+WHERE b.verkaufspreis = (SELECT MAX(verkaufspreis) FROM buecher);
+SELECT * 
+FROM buecher b 
+WHERE b.verkaufspreis = (SELECT MIN(verkaufspreis) FROM buecher);
+SELECT * 
+FROM buecher b 
+WHERE b.einkaufspreis > (SELECT AVG(einkaufspreis) FROM buecher);
+SELECT DISTINCT b.* 
+FROM buecher b 
+WHERE b.einkaufspreis > (
+    SELECT AVG(b_in.einkaufspreis) 
+    FROM buecher b_in 
+    JOIN buecher_has_sparten bs_in ON b_in.buecher_id = bs_in.buecher_buecher_id 
+    JOIN sparten s_in ON bs_in.sparten_sparten_id = s_in.sparten_id 
+    WHERE s_in.bezeichnung = 'Thriller'
+);
+SELECT b.* 
+FROM buecher b 
+JOIN buecher_has_sparten bs ON b.buecher_id = bs.buecher_buecher_id 
+JOIN sparten s ON bs.sparten_sparten_id = s.sparten_id 
+WHERE s.bezeichnung = 'Thriller' 
+AND b.einkaufspreis > (
+    SELECT AVG(b_in.einkaufspreis) 
+    FROM buecher b_in 
+    JOIN buecher_has_sparten bs_in ON b_in.buecher_id = bs_in.buecher_buecher_id 
+    JOIN sparten s_in ON bs_in.sparten_sparten_id = s_in.sparten_id 
+    WHERE s_in.bezeichnung = 'Thriller'
+);
+SELECT b.*, (b.verkaufspreis - b.einkaufspreis) AS gewinn 
+FROM buecher b 
+WHERE (b.verkaufspreis - b.einkaufspreis) > (
+    SELECT AVG(verkaufspreis - einkaufspreis) 
+    FROM buecher 
+    WHERE buecher_id <> 22
+);
+```
+```sql
+SELECT SUM(avg_einkaufspreis) AS summe_avg_einkaufspreise
+FROM (
+    SELECT   s.sparten_id,
+             s.bezeichnung,
+             AVG(b.einkaufspreis) AS avg_einkaufspreis
+    FROM     sparten              s
+    JOIN     buecher_has_sparten  bs ON s.sparten_id = bs.sparten_sparten_id
+    JOIN     buecher              b  ON bs.buecher_buecher_id = b.buecher_id
+    GROUP BY s.sparten_id, s.bezeichnung
+    HAVING   s.bezeichnung <> 'Humor'         
+         AND AVG(b.einkaufspreis) > 10         
+) AS sparten_preise;
+SELECT   vorname,
+         nachname,
+         anzahl_buecher
+FROM (
+    SELECT  a.autoren_id,
+            a.vorname,
+            a.nachname,
+            COUNT(ab.buecher_buecher_id) AS anzahl_buecher
+    FROM    autoren              a
+    JOIN    autoren_has_buecher  ab ON a.autoren_id = ab.autoren_autoren_id
+    GROUP BY a.autoren_id, a.vorname, a.nachname
+    HAVING   COUNT(*) > 4
+) AS bekannte_autoren;
+SELECT COUNT(*) AS anzahl_bekannter_autoren
+FROM (
+    SELECT  a.autoren_id
+    FROM    autoren              a
+    JOIN    autoren_has_buecher  ab ON a.autoren_id = ab.autoren_autoren_id
+    GROUP BY a.autoren_id
+    HAVING  COUNT(*) > 4
+) AS bekannte_autoren;
+SELECT AVG(avg_gewinn) AS gesamt_ø_gewinn_der_verlage
+FROM (
+    SELECT  v.verlage_id,
+            v.name,
+            AVG(b.verkaufspreis - b.einkaufspreis) AS avg_gewinn
+    FROM    verlage v
+    JOIN    buecher  b ON v.verlage_id = b.verlage_verlage_id
+    GROUP BY v.verlage_id, v.name
+    HAVING  avg_gewinn < 10                  
+) AS schwachverdiener;
+```
+## Select join
+## 1. Datenbank löschen und neu anlegen
+```sql
+DROP DATABASE IF EXISTS `kunden`;
+CREATE DATABASE IF NOT EXISTS `kunden`;
+USE `kunden`;
+```
+## 2. Tabellenstrukturen
+### Tabelle `orte`
+```sql
+DROP TABLE IF EXISTS `orte`;
+CREATE TABLE `orte` (
+  `id_postleitzahl` VARCHAR(5)  NOT NULL,
+  `name`            VARCHAR(255) NOT NULL,
+  `einwohnerzahl`   INT(11)      DEFAULT NULL,
+  PRIMARY KEY (`id_postleitzahl`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+```
+### Tabelle `kunden`
+```sql
+DROP TABLE IF EXISTS `kunden`;
+CREATE TABLE `kunden` (
+  `kunde_id`            INT(11)      NOT NULL AUTO_INCREMENT,
+  `name`                VARCHAR(200) NOT NULL,
+  `fk_ort_postleitzahl` VARCHAR(5)   NOT NULL,
+  PRIMARY KEY (`kunde_id`),
+  KEY (`fk_ort_postleitzahl`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
+```
+## 3. Beispieldaten einfügen
+### Orte
+```sql
+INSERT INTO `orte` (`id_postleitzahl`, `name`, `einwohnerzahl`) VALUES
+  ('80995','München',      1000000),
+  ('79312','Emmendingen',     40000),
+  ('79111','Freiburg',       280000),
+  ('20095','Hamburg',       2000000);
+```
+### Kunden
+```sql
+INSERT INTO `kunden` (`kunde_id`,`name`,`fk_ort_postleitzahl`) VALUES
+  (1,'John',      '79111'),
+  (2,'Herbert',   '79312'),
+  (3,'Sabina',    '79312'),
+  (4,'Mary',      '79111'),
+  (5,'Heinrich',  '79111'),
+  (6,'Usal',      '80995'),
+  (7,'Johannes',  '80995'),
+  (8,'Carla',     '79312'),
+  (9,'Ludowika',  '79111'),
+  (10,'Niemand',  '99999');   
+```
+## 5. Beispielabfragen (a – g)
+### a) Name, Postleitzahl und Wohnort aller Kunden
+```sql
+SELECT
+  k.name                   AS kundenname,
+  k.fk_ort_postleitzahl    AS postleitzahl,
+  o.name                   AS ort
+FROM kunden k
+JOIN orte  o ON k.fk_ort_postleitzahl = o.id_postleitzahl;
+```
+### b) Name und Wohnort aller Kunden mit der Postleitzahl 79312
+```sql
+SELECT
+  k.name AS kundenname,
+  o.name AS ort
+FROM kunden k
+JOIN orte  o ON k.fk_ort_postleitzahl = o.id_postleitzahl
+WHERE k.fk_ort_postleitzahl = '79312';
+```
+### c) Name und Wohnort aller Kunden, die in Emmendingen wohnen
+```sql
+SELECT
+  k.name AS kundenname,
+  o.name AS ort
+FROM kunden k
+JOIN orte  o ON k.fk_ort_postleitzahl = o.id_postleitzahl
+WHERE o.name = 'Emmendingen';
+```
+### d) Name, Wohnort und Einwohnerzahl für Kunden in Orten > 70 000 Einwohner
+```sql
+SELECT
+  k.name          AS kundenname,
+  o.name          AS ort,
+  o.einwohnerzahl AS einwohner
+FROM kunden k
+JOIN orte  o ON k.fk_ort_postleitzahl = o.id_postleitzahl
+WHERE o.einwohnerzahl > 70000;
+```
+### e) Alle Orte mit weniger als 1 000 000 Einwohnern
+```sql
+SELECT
+  id_postleitzahl,
+  name          AS ort,
+  einwohnerzahl
+FROM orte
+WHERE einwohnerzahl < 1000000;
+```
+### f) Kundenname und Ortname für Orte mit 100 000–1 500 000 Einwohnern
+```sql
+SELECT
+  k.name AS kundenname,
+  o.name AS ort
+FROM kunden k
+JOIN orte  o ON k.fk_ort_postleitzahl = o.id_postleitzahl
+WHERE o.einwohnerzahl BETWEEN 100000 AND 1500000;
+```
+### g) Kundenname, Postleitzahl und Ort – Bedingungen:
+- Kundenname enthält „e“
+- Ortsname enthält „u“ **ODER** „r**
+```sql
+SELECT
+  k.name                AS kundenname,
+  k.fk_ort_postleitzahl AS postleitzahl,
+  o.name                AS ort
+FROM kunden k
+JOIN orte  o ON k.fk_ort_postleitzahl = o.id_postleitzahl
+WHERE k.name LIKE '%e%'
+  AND (o.name LIKE '%u%' OR o.name LIKE '%r%');
+```
+# Tag 7
+## Backup Konzepte
+Datenbanksysteme sind essenziell für die Funktionalität von Websites und Unternehmenssoftware, da sie wichtige Daten wie Personal- und Finanzinformationen speichern. Ein Ausfall oder Verlust dieser Daten kann zu erheblichen Problemen führen. Oft entsteht ein Datenverlust durch technische Fehler oder Benutzerfehler, und nicht durch äußere Angriffe. Eine regelmäßige Datensicherung ist daher notwendig, um die Daten im Falle eines Verlustes wiederherzustellen.
+### Möglichkeiten zur Sicherung von Datenbanken
+Es gibt zwei Hauptarten der Datensicherung: Online- und Offline-Backups. Beim Online-Backup wird die Datenbank während des Sicherungsprozesses nicht heruntergefahren, während beim Offline-Backup die Datenbank während der Sicherung nicht verfügbar ist.
+Es gibt verschiedene Methoden zur Durchführung von Backups:
+- **Voll-Backup**: Sichert alle Daten, benötigt jedoch viel Speicherplatz.
+- **Differentielles Backup**: Sichert nur Änderungen seit dem letzten Voll-Backup und spart Speicherplatz.
+- **Inkrementelles Backup**: Sichert nur die Änderungen seit der letzten Sicherung und benötigt am wenigsten Speicherplatz.
+### Tools zur Erstellung von Backups
+- **MySQLDump**: Ein schneller Befehl für Voll-Backups über die Shell.
+- **phpMyAdmin**: Ermöglicht das Exportieren von SQL-Datenbanken, hat aber bei großen Datenbanken Einschränkungen.
+- **BigDump**: Ergänzt phpMyAdmin und kann große Backups einspielen.
+- **HeidiSQL**: Eine Windows-basierte Lösung, die keine Probleme mit großen Backups hat, jedoch keine Automatisierung bietet.
+- **Mariabackup**: Ein Open-Source-Tool für physische Online-Backups, entwickelt von MariaDB.
+### Sicherheit und Schutz der Datenbanken
+Datenbanken enthalten oft sensible Informationen und sind daher besonders schützenswert. Regelmäßige Backups verhindern Datenverlust durch Hardwarefehler oder Benutzerfehler. Um die Daten langfristig sicher zu speichern, sollten Backups regelmäßig durchgeführt und auf sicheren, externen Speichermedien abgelegt werden.
+# Tag 8
+In dieser Praxisarbeit habe ich CSV-Daten in eine Datenbank importiert und sie auf die dritte Normalform (3. NF) gebracht. Dabei wurden die Daten strukturiert in Tabellen übertragen und redundantem Speicherbedarf eliminiert.
+Die wichtigsten Schritte beinhalteten den Import der CSV-Daten, die Normalisierung der Tabellen sowie die Durchführung von Tests zur Überprüfung der Datenintegrität.
+Ergebniss = Tag 9
 # Tag 9
+LB2
+Danach weiter an der Projektarbeit gearbeitet.
+## Projektarbeit
+## 1 Excel → Erste Normalform (1. NF) & CSV-Exporte
+| Ursprüngliche Spalte | Atomare Aufteilung (1. NF)             | Beispiel-CSV (`;`-Separator) |
+|---------------------|----------------------------------------|-----------------------------|
+| Schüler             | `schueler_id`; `vorname`; `nachname`  | **Schueler.csv**<br>1;Inge;Sommer |
+| Geb.-Datum          | `geburtsdatum`                         | (siehe oben) |
+| Klasse              | `klasse_id`; `klassenbezeichnung`      | **Klasse.csv**<br>1;2a |
+| Freifach            | `freifach_id`; `bezeichnung`           | **Freifach.csv**<br>1;Chor |
+| Lehrer              | `lehrer_id`; `vorname`; `nachname`     | **Lehrer.csv**<br>1;Anna;Meier |
+| Kombinationen       | `teilnahme_id`; <FKs Schüler/Klasse/Freifach/Lehrer> | **Teilnahme.csv**<br>1;1;1;1;1 |
+
+## 2 Logisches ERD (mind. 2. NF)
+```
+Schueler   1——∞  Teilnahme  ∞——1  Freifach
+               ∞         ∞
+                \       /
+                 1——∞  Klasse
+                   |
+                   ∞
+                  Lehrer
+```
+| Tabelle    | Primärschlüssel | Wichtige Attribute | Kardinalitäten | Anmerkungen |
+|------------|-----------------|--------------------|----------------|-------------|
+| Schueler   | schueler_id PK  | vorname, nachname, geburtsdatum | 1 Schueler hat 0…* Teilnahmen | – |
+| Klasse     | klasse_id PK    | klassenbezeichnung              | 1 Klasse hat 0…* Schüler / 0…* Teilnahmen | – |
+| Freifach   | freifach_id PK  | bezeichnung                     | 1 Freifach hat 0…* Teilnahmen | – |
+| Lehrer     | lehrer_id PK    | vorname, nachname               | 1 Lehrer leitet 0…* Teilnahmen | – |
+| Teilnahme  | teilnahme_id PK | FK schueler_id, klasse_id,<br>FK freifach_id, lehrer_id | – | Brückentabelle |
+## 3 Physisches ERD & SQL-DDL (Forward Engineering)
+```sql
+CREATE DATABASE IF NOT EXISTS Freifaecher DEFAULT CHARACTER SET utf8mb4;
+USE Freifaecher;
+CREATE TABLE Klasse (
+  klasse_id          INT AUTO_INCREMENT PRIMARY KEY,
+  klassenbez         VARCHAR(10) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+CREATE TABLE Freifach (
+  freifach_id        INT AUTO_INCREMENT PRIMARY KEY,
+  bezeichnung        VARCHAR(50) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+CREATE TABLE Lehrer (
+  lehrer_id          INT AUTO_INCREMENT PRIMARY KEY,
+  vorname            VARCHAR(40) NOT NULL,
+  nachname           VARCHAR(40) NOT NULL,
+  CONSTRAINT uq_lehrer_name UNIQUE (vorname, nachname)
+) ENGINE=InnoDB;
+
+CREATE TABLE Schueler (
+  schueler_id        INT AUTO_INCREMENT PRIMARY KEY,
+  vorname            VARCHAR(40) NOT NULL,
+  nachname           VARCHAR(40) NOT NULL,
+  geburtsdatum       DATE        NOT NULL,
+  klasse_id          INT NOT NULL,
+  CONSTRAINT fk_schueler_klasse FOREIGN KEY (klasse_id)
+            REFERENCES Klasse (klasse_id)
+            ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE Teilnahme (
+  teilnahme_id       INT AUTO_INCREMENT PRIMARY KEY,
+  schueler_id        INT NOT NULL,
+  freifach_id        INT NOT NULL,
+  lehrer_id          INT NOT NULL,
+  UNIQUE (schueler_id, freifach_id),   -- 1 Schüler <= 1 Teilnahme je Freifach
+  CONSTRAINT fk_teiln_schueler FOREIGN KEY (schueler_id) REFERENCES Schueler(schueler_id),
+  CONSTRAINT fk_teiln_freifach FOREIGN KEY (freifach_id) REFERENCES Freifach(freifach_id),
+  CONSTRAINT fk_teiln_lehrer   FOREIGN KEY (lehrer_id)   REFERENCES Lehrer(lehrer_id)
+) ENGINE=InnoDB;
+```
+## 4 CSV-Import mit `LOAD DATA`
+```sql
+LOAD DATA LOCAL INFILE '/path/to/Klasse.csv'
+INTO TABLE Klasse
+FIELDS TERMINATED BY ';'
+LINES TERMINATED BY '\n'
+(klasse_id, klassenbez);
+
+LOAD DATA LOCAL INFILE '/path/to/Freifach.csv'
+INTO TABLE Freifach
+FIELDS TERMINATED BY ';'
+LINES TERMINATED BY '\n'
+(freifach_id, bezeichnung);
+```
+> Kontroll­abfrage nach jedem Import (Beispiel):
+> ```sql
+> SELECT COUNT(*) FROM Schueler;
+> SELECT COUNT(*) FROM Teilnahme WHERE schueler_id NOT IN (SELECT schueler_id FROM Schueler);
+> ```
+## 5 Datenbereinigung
+Beispiel für Cleanup-Skripte (leere Nachnamen, Dubletten …):
+```sql
+UPDATE Schueler SET nachname = NULL WHERE TRIM(nachname) = '';
+DELETE l2 FROM Lehrer l1
+JOIN Lehrer l2 ON l1.lehrer_id < l2.lehrer_id
+              AND l1.vorname = l2.vorname AND l1.nachname = l2.nachname;
+```
+## 6 Tests – Soll/Ist Vergleich
+```sql
+SELECT klassenbez, COUNT(*) AS anzahl
+FROM   Schueler s JOIN Klasse k USING (klasse_id)
+GROUP  BY k.klasse_id
+ORDER  BY klassenbez;
+```
+## 7 +290 Testdatensätze generieren
+```sql
+-- Beispiel mit Faker (falls du Python + Faker verwenden möchtest)
+-- python - <<EOF
+-- from faker import Faker, providers; import csv, random, datetime
+-- fake = Faker('de_DE');
+-- with open('Schueler_extra.csv','w',newline='') as f:
+--     w = csv.writer(f, delimiter=';')
+--     for i in range(290):
+--         dt = fake.date_between_dates(date_start=datetime.date(2005,1,1), date_end=datetime.date(2008,12,31))
+--         w.writerow(['', fake.first_name(), fake.last_name(), dt, random.randint(1,6)])
+-- EOF
+```
+## 8 Abfrage-Aufgaben
+```sql
+SELECT COUNT(*) AS teilnehmer_ingesommer
+FROM   Teilnahme t
+JOIN   Schueler  s  ON t.schueler_id = s.schueler_id
+JOIN   Lehrer    l  ON t.lehrer_id   = l.lehrer_id
+WHERE  l.vorname = 'Inge' AND l.nachname = 'Sommer';
+SELECT k.klassenbez, COUNT(*) AS anzahl_teilnehmer
+FROM   Teilnahme t
+JOIN   Schueler s  ON t.schueler_id = s.schueler_id
+JOIN   Klasse  k  ON s.klasse_id   = k.klasse_id
+GROUP  BY k.klasse_id
+ORDER  BY k.klassenbez;
+SELECT s.vorname, s.nachname, f.bezeichnung
+FROM   Teilnahme t
+JOIN   Schueler s ON t.schueler_id = s.schueler_id
+JOIN   Freifach f ON t.freifach_id = f.freifach_id
+WHERE  f.bezeichnung IN ('Chor','Elektronik');
+```
+### Ergebnisse in Datei speichern (`SELECT … INTO OUTFILE`)
+```sql
+SELECT k.klassenbez, COUNT(*) AS anzahl_teilnehmer
+INTO OUTFILE '/tmp/klassen_teilnehmer.csv'
+FIELDS TERMINATED BY ';' LINES TERMINATED BY '\n'
+FROM   Teilnahme t
+JOIN   Schueler s ON t.schueler_id = s.schueler_id
+JOIN   Klasse  k ON s.klasse_id   = k.klasse_id
+GROUP  BY k.klasse_id;
+```
+## 9 Backup der DB `Freifaecher`
+```bash
+mysqldump -u backup_user -p --databases Freifaecher           --routines --events --triggers           --single-transaction --quick --add-drop-table           > Freifaecher_backup_$(date +%F).sql
+```
 
 # Tag 10 
 Ich habe mein Lernjournal erfolgreich fertiggestellt und mich intensiv mit dem Thema "Common Table Expressions" (CTEs) und "Stored Procedures" auseinandergesetzt. Dabei habe ich sowohl die Grundlagen als auch die praktischen Anwendungen dieser Konzepte erlernt. Besonders spannend fand ich, wie CTEs die Lesbarkeit und Wartbarkeit von SQL-Abfragen verbessern können, während Stored Procedures die Wiederverwendbarkeit und Modularität von Code ermöglichen.
