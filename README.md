@@ -708,7 +708,8 @@ FROM customers
 WHERE postal_code_ref IS NULL;
 UPDATE locations
 SET postal_code = '99999'
-WHERE postal_code = '10000';```
+WHERE postal_code = '10000';
+````
 # Tag 6
 ## SubQueries
 ```sql
@@ -749,7 +750,7 @@ WHERE (b.verkaufspreis - b.einkaufspreis) > (
     FROM buecher 
     WHERE buecher_id <> 22
 );
-````
+```
 ```sql
 SELECT SUM(avg_einkaufspreis) AS summe_avg_einkaufspreise
 FROM (
