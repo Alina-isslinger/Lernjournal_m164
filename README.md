@@ -1,3 +1,4 @@
+In diesem Lernjournal sind fast alle Aufgaben, die ich währed dem Unterricht geschafft habe. Mache habe ich vergessen zu speichern und ins Lernjournal zu kopieren.
 ## Was ist SQL?
 
 SQL (Structured Query Language) ist eine Sprache, um mit Datenbanken zu arbeiten.  
