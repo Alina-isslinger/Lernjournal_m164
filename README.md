@@ -974,3 +974,62 @@ mysqldump -u backup_user -p --databases Freifaecher           --routines --event
 
 # Tag 10 
 Ich habe mein Lernjournal erfolgreich fertiggestellt und mich intensiv mit dem Thema "Common Table Expressions" (CTEs) und "Stored Procedures" auseinandergesetzt. Dabei habe ich sowohl die Grundlagen als auch die praktischen Anwendungen dieser Konzepte erlernt. Besonders spannend fand ich, wie CTEs die Lesbarkeit und Wartbarkeit von SQL-Abfragen verbessern können, während Stored Procedures die Wiederverwendbarkeit und Modularität von Code ermöglichen.
+## Hintergrund und Vorteile von Stored Procedures
+Stored Procedures (gespeicherte Prozeduren) sind vordefinierte, wiederverwendbare SQL-Programme, die in einer Datenbank gespeichert und nach Bedarf ausgeführt werden können.
+Wiederverwendbarkeit: Einmal definiert, können sie jederzeit genutzt werden.
+Zentralisierung der Logik: Komplexe Geschäftsprozesse werden serverseitig verwaltet, was die Nutzung von Client-Skripten vermeidet.
+Leistung: Die direkte Ausführung auf dem Datenbankserver verringert die Notwendigkeit für Netzwerkaufrufe und verbessert die Performance.
+Sicherheit: Nutzer benötigen nur die Berechtigung zur Ausführung der Prozeduren (EXECUTE-Rechte), nicht jedoch zu Änderungen an den zugrunde liegenden Tabellen (DML-Rechte).
+## Prozeduren
+````sql
+DELIMITER $$
+CREATE PROCEDURE GetTeilnehmerProLehrer (IN LehrerID INT)
+BEGIN
+    SELECT l.lehrer_id, 
+           l.vorname, 
+           l.nachname, 
+           COUNT(t.teilnahme_id) AS teilnehmerzahl
+    FROM   Lehrer l
+    LEFT JOIN Teilnahme t ON l.lehrer_id = t.lehrer_id
+    WHERE  l.lehrer_id = LehrerID
+    GROUP BY l.lehrer_id;
+END $$
+CREATE PROCEDURE KlassenÜbersicht ()
+BEGIN
+    SELECT k.klassenbezeichnung, 
+           COUNT(DISTINCT s.schueler_id) AS anzahl_schueler, 
+           COUNT(t.teilnahme_id)         AS anzahl_teilnahmen, 
+           MAX(t.teilnahme_id)           AS max_teilnahme
+    FROM   Klasse k
+    LEFT JOIN Schueler s ON k.klasse_id = s.klasse_id
+    LEFT JOIN Teilnahme t ON s.schueler_id = t.schueler_id
+    GROUP BY k.klasse_id
+    ORDER BY k.klassenbezeichnung;
+END $$
+CREATE PROCEDURE FreifachStatistik ()
+BEGIN
+    SELECT f.name, 
+           COUNT(t.teilnahme_id) AS teilnehmer, 
+           MAX(t.teilnahme_id)   AS max_teilnahme, 
+           AVG(sub.cnt)          AS durchschnitt_pro_lehrer
+    FROM   Freifach f
+    LEFT JOIN Teilnahme t ON f.freifach_id = t.freifach_id
+    LEFT JOIN (
+        SELECT lehrer_id, freifach_id, COUNT(*) AS cnt
+        FROM   Teilnahme
+        GROUP  BY lehrer_id, freifach_id
+    ) sub ON sub.freifach_id = f.freifach_id
+    GROUP BY f.freifach_id;
+END $$
+DELIMITER ;
+````
+## für Aufrufe
+````sql
+CALL GetTeilnehmerProLehrer(1);
+CALL KlassenÜbersicht();
+CALL FreifachStatistik();
+````
+## Berechtigungen
+GRANT EXECUTE ON PROCEDURE Freifaecher.GetTeilnehmerProLehrer TO 'app_user'@'%';
+GRANT EXECUTE ON PROCEDURE Freifaecher.KlassenÜbersicht TO 'app_user'@'%';
+GRANT EXECUTE ON PROCEDURE Freifaecher.FreifachStatistik TO 'app_user'@'%';
