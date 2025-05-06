@@ -89,11 +89,11 @@ Theorie-Zusammenfassung
   - Wenn untergeordnete Entitäten **eigenständig sind**
   - Typisch bei Zuweisungen: z. B. Mitarbeiter → Projekt, Schüler → Kurs
   # Zusammenfassung: Datenbanksysteme (DBS / DBMS)
-## 1. Was ist ein Datenbanksystem?
+### 1. Was ist ein Datenbanksystem?
 - **Datenbanksystem (DBS)** = Datenbank + Verwaltungssoftware (DBMS)
 - **DBMS (Database Management System)**: Software zur Verwaltung, Sicherung und Organisation von Daten
 - **Datenbank (DB)**: Der eigentliche, dauerhaft gespeicherte Datenbestand
-## 2. Hauptfunktionen eines DBMS
+### 2. Hauptfunktionen eines DBMS
 ### Zentrale Datenhaltung
 - Einheitliche Ablage aller Daten
 - Keine redundante Speicherung
@@ -122,25 +122,25 @@ Theorie-Zusammenfassung
 - Sperr- und Synchronisationsmechanismen
 ### Datensicherung & Wiederherstellung
 - Backup, Journaling, Crash-Recovery
-## 3. Vorteile eines DBMS
+### 3. Vorteile eines DBMS
 - Standardisierte Datenformate und -namen
 - Effiziente Speicherung und schnelle Abfragen
 - Reduzierter Entwicklungsaufwand
 - Hohe Flexibilität und Datenunabhängigkeit
 - Gleichzeitiger Zugriff durch mehrere Benutzer
 - Zentrale Verwaltung senkt Betriebskosten
-## 4. Nachteile eines DBMS
+### 4. Nachteile eines DBMS
 - Hohe Kosten für Anschaffung, Wartung und Betrieb
 - Leistungseinbußen bei speziellen Aufgaben
 - Komplexität erfordert geschultes Personal
 - Sicherheits- und Synchronisationsaufwand
 - Single Point of Failure (Gegenmaßnahme: verteilte Systeme)
-## 5. Wann reichen einfache Dateien?
+### 5. Wann reichen einfache Dateien?
 - Kein Mehrbenutzerzugriff notwendig
 - Feste, einfache und unveränderliche Datenstrukturen
 - Strenge Echtzeitanforderungen
 - Beispiel: Log-Dateien, einfache Konfigurationsdaten
-## 6. DBMS-Ranking (Stand: April 2025)
+### 6. DBMS-Ranking (Stand: April 2025)
 | DBMS           | Hersteller     | Top 10 Platzierung |
 |----------------|----------------|---------------------|
 | Oracle         | Oracle         | Platz 1             |
@@ -148,7 +148,7 @@ Theorie-Zusammenfassung
 | MS SQL Server  | Microsoft      | Platz 3             |
 | PostgreSQL     | –              | Platz 4             |
 | IBM Db2        | IBM            | Platz 9             |
-## DDL Aufgabe:
+### DDL Aufgabe:
 CREATE SCHEMA IF NOT EXISTS `AufgabenDB`
   DEFAULT CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
