@@ -88,7 +88,7 @@ Theorie-Zusammenfassung
 - Non-Identifying:
   - Wenn untergeordnete Entitäten **eigenständig sind**
   - Typisch bei Zuweisungen: z. B. Mitarbeiter → Projekt, Schüler → Kurs
-  # Zusammenfassung: Datenbanksysteme (DBS / DBMS)
+  ## Zusammenfassung: Datenbanksysteme (DBS / DBMS)
 ### 1. Was ist ein Datenbanksystem?
 - **Datenbanksystem (DBS)** = Datenbank + Verwaltungssoftware (DBMS)
 - **DBMS (Database Management System)**: Software zur Verwaltung, Sicherung und Organisation von Daten
