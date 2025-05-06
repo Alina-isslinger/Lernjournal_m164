@@ -1030,6 +1030,8 @@ CALL KlassenÜbersicht();
 CALL FreifachStatistik();
 ````
 ## Berechtigungen
+````sql
 GRANT EXECUTE ON PROCEDURE Freifaecher.GetTeilnehmerProLehrer TO 'app_user'@'%';
 GRANT EXECUTE ON PROCEDURE Freifaecher.KlassenÜbersicht TO 'app_user'@'%';
 GRANT EXECUTE ON PROCEDURE Freifaecher.FreifachStatistik TO 'app_user'@'%';
+````
