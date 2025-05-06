@@ -215,7 +215,7 @@ ALTER TABLE `tbl_disponent`
   ADD CONSTRAINT `FK_disponent_mitarbeiter`
     FOREIGN KEY (`MA_ID`) REFERENCES `tbl_Mitarbeiter`(`MA_ID`);
 # Tag 3
-# Repetition M162 Datentypen
+## Repetition M162 Datentypen
 ## Datentypen in MariaDB (MySQL)
 
 | Datentyp                                | MariaDB (MySQL)               | Beispiel           | Bemerkung / Einstellungen         |
@@ -235,15 +235,15 @@ ALTER TABLE `tbl_disponent`
 | Verbund                                 | SET                           | SET('rot', 'blau') | Menge von Werten                 |
 | JSON                                    | JSON                          | '{"name": "Test"}' | Speicherung von JSON-Daten       |
 
-## Mehrfachbeziehungen
+### Mehrfachbeziehungen
 Bei Mehrfachbeziehungen haben zwei Tabellen mehrere Beziehungen, die unabhängig voneinander sind und jeweils einen anderen Sachverhalt repräsentieren. Um die verschiedenen Beziehungen eindeutig zu kennzeichnen, müssen sie möglichst aussagekräftig beschriftet werden (Rolle). Die Kardinalitäten können natürlich verschieden sein, da die Beziehungen voneinander unabhängig sind. In den Beispielen unten gibt es drei unabhängige Beziehungen zwischen den Entitätstypen `tbl_Fahrten` und `tbl_Orte`. Eine dieser Beziehungen ist die Auflistung der Orte, die bei einer Tour angefahren werden können. Dies ist eine mc:mc-Beziehung und benötigt daher eine Transformationstabelle.
-## Rekursion (strenge Hierarchie)
+### Rekursion (strenge Hierarchie)
 Bei einer Rekursion handelt es sich um eine Beziehung, bei der ein Entitätstyp mit sich selbst in Beziehung steht. Dies tritt oft in Hierarchien auf, z.B. bei einer Unternehmensstruktur, wo jeder Mitarbeiter genau einen Vorgesetzten hat. Eine reine Hierarchie kann innerhalb der gleichen Tabelle abgebildet werden. Sie erhält einen Fremdschlüssel, der auf den Identifikationsschlüssel der eigenen Tabelle verweist.
-## Einfache Hierarchie (mit Zwischentabelle)
+### Einfache Hierarchie (mit Zwischentabelle)
 Wenn mehrere Oberelemente zugelassen sind (z. B. mehrere Projektleiter), handelt es sich um eine mc:mc-Beziehung, die eine Transformationstabelle benötigt. Die beiden Fremdschlüssel der Transformationstabelle zeigen jeweils auf einen Identifikationsschlüssel der gleichen Tabelle, jedoch in unterschiedlichen Rollen.
-## Stücklistenproblem
+### Stücklistenproblem
 Eine klassische Anwendung der Rekursion in der Datenmodellierung ist die Stücklistenproblematik. Bei modularen Produkten, die sich aus mehreren Einzelteilen zusammensetzen, wird eine Tabelle benötigt, die angibt, welche Teile in welchem Produkt enthalten sind. Diese Beziehung muss rekursiv dargestellt werden, um die Bauteile auf die elementare Ebene herunterzubrechen.
-## SQL Code für Mehrfachbeziehungen und Rekursion
+### SQL Code für Mehrfachbeziehungen und Rekursion
 ^^```sql
 CREATE TABLE tbl_Fahrten_Orte (
     FahrtID INT,
@@ -258,7 +258,7 @@ CREATE TABLE tbl_Mitarbeiter (
     FS_Vorgesetzter INT,  
     FOREIGN KEY (FS_Vorgesetzter) REFERENCES tbl_Mitarbeiter(ID)
 );
-## Insert into
+### Insert into
 ````sql 
 INSERT INTO customers
 VALUES (NULL, 'Heinrich', 'Schmitt', 2, 'Zürich');
@@ -295,7 +295,7 @@ VALUES (NULL, 'Brunhild', 'Sulcher', 1, 'Süderstade');
 INSERT INTO customers
 VALUES (NULL, 'Jochen', 'Schmied', 2, 'Solingen');
 ````
-## Select
+### Select
 ````sql
 SELECT *
 FROM dvd_collection;
@@ -818,7 +818,7 @@ In dieser Praxisarbeit habe ich CSV-Daten in eine Datenbank importiert und sie a
 Die wichtigsten Schritte beinhalteten den Import der CSV-Daten, die Normalisierung der Tabellen sowie die Durchführung von Tests zur Überprüfung der Datenintegrität.
 Ergebniss = Tag 9
 # Tag 9
-LB2
+Als erstes hatten wir die LB2.
 Danach weiter an der Projektarbeit gearbeitet.
 ## Projektarbeit
 ## 1 Excel → Erste Normalform (1. NF) & CSV-Exporte
