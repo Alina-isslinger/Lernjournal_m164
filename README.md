@@ -260,6 +260,7 @@ CREATE TABLE tbl_Mitarbeiter (
     FOREIGN KEY (FS_Vorgesetzter) REFERENCES tbl_Mitarbeiter(ID)
 );
 # Tag 4
+## LB1
 ## Mengenlehre
 ### Aufgabe 1
 Gegeben  
@@ -312,92 +313,6 @@ Eigene Beispiele mit bezeichnenden Mengen:
      ```
      Obst ∩ GelbeFrüchte = { Erdbeere }
      ```
-# Tag 6
-## SubQueries
-```sql
-SELECT * 
-FROM buecher b 
-WHERE b.verkaufspreis = (SELECT MAX(verkaufspreis) FROM buecher);
-SELECT * 
-FROM buecher b 
-WHERE b.verkaufspreis = (SELECT MIN(verkaufspreis) FROM buecher);
-SELECT * 
-FROM buecher b 
-WHERE b.einkaufspreis > (SELECT AVG(einkaufspreis) FROM buecher);
-SELECT DISTINCT b.* 
-FROM buecher b 
-WHERE b.einkaufspreis > (
-    SELECT AVG(b_in.einkaufspreis) 
-    FROM buecher b_in 
-    JOIN buecher_has_sparten bs_in ON b_in.buecher_id = bs_in.buecher_buecher_id 
-    JOIN sparten s_in ON bs_in.sparten_sparten_id = s_in.sparten_id 
-    WHERE s_in.bezeichnung = 'Thriller'
-);
-SELECT b.* 
-FROM buecher b 
-JOIN buecher_has_sparten bs ON b.buecher_id = bs.buecher_buecher_id 
-JOIN sparten s ON bs.sparten_sparten_id = s.sparten_id 
-WHERE s.bezeichnung = 'Thriller' 
-AND b.einkaufspreis > (
-    SELECT AVG(b_in.einkaufspreis) 
-    FROM buecher b_in 
-    JOIN buecher_has_sparten bs_in ON b_in.buecher_id = bs_in.buecher_buecher_id 
-    JOIN sparten s_in ON bs_in.sparten_sparten_id = s_in.sparten_id 
-    WHERE s_in.bezeichnung = 'Thriller'
-);
-SELECT b.*, (b.verkaufspreis - b.einkaufspreis) AS gewinn 
-FROM buecher b 
-WHERE (b.verkaufspreis - b.einkaufspreis) > (
-    SELECT AVG(verkaufspreis - einkaufspreis) 
-    FROM buecher 
-    WHERE buecher_id <> 22
-);
-```
-```sql
-SELECT SUM(avg_einkaufspreis) AS summe_avg_einkaufspreise
-FROM (
-    SELECT   s.sparten_id,
-             s.bezeichnung,
-             AVG(b.einkaufspreis) AS avg_einkaufspreis
-    FROM     sparten              s
-    JOIN     buecher_has_sparten  bs ON s.sparten_id = bs.sparten_sparten_id
-    JOIN     buecher              b  ON bs.buecher_buecher_id = b.buecher_id
-    GROUP BY s.sparten_id, s.bezeichnung
-    HAVING   s.bezeichnung <> 'Humor'         
-         AND AVG(b.einkaufspreis) > 10         
-) AS sparten_preise;
-SELECT   vorname,
-         nachname,
-         anzahl_buecher
-FROM (
-    SELECT  a.autoren_id,
-            a.vorname,
-            a.nachname,
-            COUNT(ab.buecher_buecher_id) AS anzahl_buecher
-    FROM    autoren              a
-    JOIN    autoren_has_buecher  ab ON a.autoren_id = ab.autoren_autoren_id
-    GROUP BY a.autoren_id, a.vorname, a.nachname
-    HAVING   COUNT(*) > 4
-) AS bekannte_autoren;
-SELECT COUNT(*) AS anzahl_bekannter_autoren
-FROM (
-    SELECT  a.autoren_id
-    FROM    autoren              a
-    JOIN    autoren_has_buecher  ab ON a.autoren_id = ab.autoren_autoren_id
-    GROUP BY a.autoren_id
-    HAVING  COUNT(*) > 4
-) AS bekannte_autoren;
-SELECT AVG(avg_gewinn) AS gesamt_ø_gewinn_der_verlage
-FROM (
-    SELECT  v.verlage_id,
-            v.name,
-            AVG(b.verkaufspreis - b.einkaufspreis) AS avg_gewinn
-    FROM    verlage v
-    JOIN    buecher  b ON v.verlage_id = b.verlage_verlage_id
-    GROUP BY v.verlage_id, v.name
-    HAVING  avg_gewinn < 10                  
-) AS schwachverdiener;
-```
 ## Select join
 ## 1. Datenbank löschen und neu anlegen
 ```sql
@@ -518,6 +433,287 @@ FROM kunden k
 JOIN orte  o ON k.fk_ort_postleitzahl = o.id_postleitzahl
 WHERE k.name LIKE '%e%'
   AND (o.name LIKE '%u%' OR o.name LIKE '%r%');
+```
+
+## 1) Lieferanten mit Sitz in Freiburg
+```sql
+SELECT
+  l.name        AS lieferant,
+  o.name        AS ort,
+  o.postleitzahl
+FROM lieferanten l
+JOIN orte       o ON l.orte_orte_id = o.orte_id
+WHERE o.name = 'Freiburg';
+```
+## 2) Verlage mit Sitz in München
+```sql
+SELECT
+  v.name        AS verlag,
+  o.name        AS ort
+FROM verlage v
+JOIN orte    o ON v.orte_orte_id = o.orte_id
+WHERE o.name = 'München';
+```
+## 3) Bücher aus dem Verlag „Assal“
+```sql
+SELECT
+  b.titel,
+  b.erscheinungsjahr,
+  v.name        AS verlag
+FROM buecher b
+JOIN verlage v ON b.verlage_verlage_id = v.verlage_id
+WHERE v.name = 'Assal'
+ORDER BY b.erscheinungsjahr DESC;
+```
+## 4) Bücher des Lieferanten „Schustermann“
+```sql
+SELECT
+  b.titel,
+  l.name        AS lieferant
+FROM buecher b
+JOIN buecher_has_lieferanten bl ON b.buecher_id = bl.buecher_buecher_id
+JOIN lieferanten l ON bl.lieferanten_lieferanten_id = l.lieferanten_id
+WHERE l.name = 'Schustermann';
+```
+## 5) Alle Bücher der Sparte „Thriller“
+```sql
+SELECT
+  b.titel,
+  s.bezeichnung AS sparte
+FROM buecher b
+JOIN buecher_has_sparten bs ON b.buecher_id = bs.buecher_buecher_id
+JOIN sparten s ON bs.sparten_sparten_id = s.sparten_id
+WHERE s.bezeichnung = 'Thriller'
+ORDER BY b.titel;
+```
+## 6) Alle Liebesromane („Liebe“)
+```sql
+SELECT
+  b.titel,
+  s.bezeichnung AS sparte,
+  v.name        AS verlag
+FROM buecher b
+JOIN buecher_has_sparten bs ON b.buecher_id = bs.buecher_buecher_id
+JOIN sparten s ON bs.sparten_sparten_id = s.sparten_id
+JOIN verlage v ON b.verlage_verlage_id = v.verlage_id
+WHERE s.bezeichnung = 'Liebe'
+ORDER BY b.titel;
+```
+## 7) Bücher von Sabrina Müller
+```sql
+SELECT
+  a.nachname,
+  a.vorname,
+  b.titel
+FROM autoren a
+JOIN autoren_has_buecher ab ON a.autoren_id = ab.autoren_autoren_id
+JOIN buecher b ON ab.buecher_buecher_id = b.buecher_id
+WHERE a.vorname = 'Sabrina'
+  AND a.nachname = 'Müller'
+ORDER BY b.titel DESC;
+```
+## 8) Thriller von Sabrina Müller
+```sql
+SELECT
+  CONCAT(a.vorname, ' ', a.nachname) AS autor,
+  b.titel,
+  s.bezeichnung                     AS sparte
+FROM autoren a
+JOIN autoren_has_buecher ab ON a.autoren_id = ab.autoren_autoren_id
+JOIN buecher b ON ab.buecher_buecher_id = b.buecher_id
+JOIN buecher_has_sparten bs ON b.buecher_id = bs.buecher_buecher_id
+JOIN sparten s ON bs.sparten_sparten_id = s.sparten_id
+WHERE a.vorname = 'Sabrina'
+  AND a.nachname = 'Müller'
+  AND s.bezeichnung = 'Thriller';
+```
+## 9) Thriller ODER Humor von Sabrina Müller
+```sql
+SELECT
+  CONCAT(a.vorname, ' ', a.nachname) AS autor,
+  b.titel,
+  GROUP_CONCAT(DISTINCT s.bezeichnung ORDER BY s.bezeichnung SEPARATOR ', ') AS sparten
+FROM autoren a
+JOIN autoren_has_buecher ab ON a.autoren_id = ab.autoren_autoren_id
+JOIN buecher b ON ab.buecher_buecher_id = b.buecher_id
+JOIN buecher_has_sparten bs ON b.buecher_id = bs.buecher_buecher_id
+JOIN sparten s ON bs.sparten_sparten_id = s.sparten_id
+WHERE a.vorname = 'Sabrina'
+  AND a.nachname = 'Müller'
+  AND s.bezeichnung IN ('Thriller', 'Humor')
+GROUP BY b.titel
+ORDER BY b.titel;
+```
+# Tag 5
+## Warum lassen sich Datensätze nicht beliebig entfernen?
+In relationalen Datenbanken bestehen zwischen Tabellen oft Abhängigkeiten. Wird ein Eintrag gelöscht, auf den andere Tabellen noch verweisen, bleiben sogenannte verwaiste Fremdschlüssel zurück. Dadurch wird die Datenkonsistenz verletzt – Abfragen liefern dann unter Umständen fehlerhafte Ergebnisse.
+## Wer verhindert das?
+Das Datenbankmanagementsystem (DBMS) sorgt für die referenzielle Integrität. Ist ein Fremdschlüssel definiert, prüft die Datenbank bei jedem INSERT, UPDATE oder DELETE, ob der Verweis gültig bleibt. Falls nicht, wird der Vorgang abgebrochen, typischerweise mit Fehlercode 1451 oder 1452.
+## „4000 Basel“ durch „3000 Bern“ ersetzen
+```sql 
+DELETE FROM tbl_orte
+UPDATE tbl_orte
+SET    PLZ = '3000',
+       Ortsbezeichnung = 'Bern'
+WHERE  ID_Ort = 5;
+```
+## Warum nicht einfach ON DELETE CASCADE?
+Die Option CASCADE würde bei Löschung von „Basel“ alle verknüpften Datensätze automatisch mitlöschen – etwa Stationen oder historische Routen. Das ist meist nicht gewünscht, da wichtige Daten verloren gehen könnten. Daher wird bei kritischen Beziehungen oft gezielt RESTRICT oder NO ACTION verwendet, um Löschvorgänge zu kontrollieren.
+## Schema CASCADE
+````sql
+DROP SCHEMA IF EXISTS fk_tests;
+CREATE SCHEMA fk_tests DEFAULT CHARACTER SET utf8;
+USE fk_tests;
+CREATE TABLE locations (
+  postal_code VARCHAR(5) PRIMARY KEY,
+  city_name   VARCHAR(45)
+) ENGINE=InnoDB;
+INSERT INTO locations (postal_code, city_name) VALUES
+  ('10000','Musterhausen'),
+  ('79092','Freiburg'),
+  ('79102','Freiburg'),
+  ('79312','Emmendingen');
+CREATE TABLE customers (
+  customer_id      INT AUTO_INCREMENT PRIMARY KEY,
+  customer_name    VARCHAR(45),
+  postal_code_ref  VARCHAR(5),
+  CONSTRAINT fk_customers_locations
+    FOREIGN KEY (postal_code_ref)
+    REFERENCES locations (postal_code)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+INSERT INTO customers (customer_name, postal_code_ref) VALUES
+  ('Huber','10000'),
+  ('Schmitt','10000'),
+  ('Müller','79312'),
+  ('Maier','79312'),
+  ('Metz','79092'),
+  ('Schmied','79102');
+DELETE FROM locations;
+SELECT * FROM customers; 
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS locations;
+CREATE TABLE customers (
+  customer_id      INT AUTO_INCREMENT PRIMARY KEY,
+  customer_name    VARCHAR(45),
+  postal_code_ref  VARCHAR(5),
+  CONSTRAINT fk_customers_locations
+    FOREIGN KEY (postal_code_ref)
+    REFERENCES locations (postal_code)
+    ON DELETE RESTRICT
+    ON UPDATE RESTRICT
+);
+DELETE FROM locations
+WHERE city_name = 'Emmendingen';
+UPDATE locations
+SET postal_code = '99999'
+WHERE postal_code = '10000';
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS locations;
+CREATE TABLE customers (
+  customer_id      INT AUTO_INCREMENT PRIMARY KEY,
+  customer_name    VARCHAR(45),
+  postal_code_ref  VARCHAR(5),
+  CONSTRAINT fk_customers_locations
+    FOREIGN KEY (postal_code_ref)
+    REFERENCES locations (postal_code)
+    ON DELETE SET NULL
+    ON UPDATE NO ACTION
+);
+DELETE FROM locations
+WHERE city_name = 'Emmendingen';
+SELECT customer_id, customer_name, postal_code_ref
+FROM customers
+WHERE postal_code_ref IS NULL;
+UPDATE locations
+SET postal_code = '99999'
+WHERE postal_code = '10000';```
+# Tag 6
+## SubQueries
+```sql
+SELECT * 
+FROM buecher b 
+WHERE b.verkaufspreis = (SELECT MAX(verkaufspreis) FROM buecher);
+SELECT * 
+FROM buecher b 
+WHERE b.verkaufspreis = (SELECT MIN(verkaufspreis) FROM buecher);
+SELECT * 
+FROM buecher b 
+WHERE b.einkaufspreis > (SELECT AVG(einkaufspreis) FROM buecher);
+SELECT DISTINCT b.* 
+FROM buecher b 
+WHERE b.einkaufspreis > (
+    SELECT AVG(b_in.einkaufspreis) 
+    FROM buecher b_in 
+    JOIN buecher_has_sparten bs_in ON b_in.buecher_id = bs_in.buecher_buecher_id 
+    JOIN sparten s_in ON bs_in.sparten_sparten_id = s_in.sparten_id 
+    WHERE s_in.bezeichnung = 'Thriller'
+);
+SELECT b.* 
+FROM buecher b 
+JOIN buecher_has_sparten bs ON b.buecher_id = bs.buecher_buecher_id 
+JOIN sparten s ON bs.sparten_sparten_id = s.sparten_id 
+WHERE s.bezeichnung = 'Thriller' 
+AND b.einkaufspreis > (
+    SELECT AVG(b_in.einkaufspreis) 
+    FROM buecher b_in 
+    JOIN buecher_has_sparten bs_in ON b_in.buecher_id = bs_in.buecher_buecher_id 
+    JOIN sparten s_in ON bs_in.sparten_sparten_id = s_in.sparten_id 
+    WHERE s_in.bezeichnung = 'Thriller'
+);
+SELECT b.*, (b.verkaufspreis - b.einkaufspreis) AS gewinn 
+FROM buecher b 
+WHERE (b.verkaufspreis - b.einkaufspreis) > (
+    SELECT AVG(verkaufspreis - einkaufspreis) 
+    FROM buecher 
+    WHERE buecher_id <> 22
+);
+````
+```sql
+SELECT SUM(avg_einkaufspreis) AS summe_avg_einkaufspreise
+FROM (
+    SELECT   s.sparten_id,
+             s.bezeichnung,
+             AVG(b.einkaufspreis) AS avg_einkaufspreis
+    FROM     sparten              s
+    JOIN     buecher_has_sparten  bs ON s.sparten_id = bs.sparten_sparten_id
+    JOIN     buecher              b  ON bs.buecher_buecher_id = b.buecher_id
+    GROUP BY s.sparten_id, s.bezeichnung
+    HAVING   s.bezeichnung <> 'Humor'         
+         AND AVG(b.einkaufspreis) > 10         
+) AS sparten_preise;
+SELECT   vorname,
+         nachname,
+         anzahl_buecher
+FROM (
+    SELECT  a.autoren_id,
+            a.vorname,
+            a.nachname,
+            COUNT(ab.buecher_buecher_id) AS anzahl_buecher
+    FROM    autoren              a
+    JOIN    autoren_has_buecher  ab ON a.autoren_id = ab.autoren_autoren_id
+    GROUP BY a.autoren_id, a.vorname, a.nachname
+    HAVING   COUNT(*) > 4
+) AS bekannte_autoren;
+SELECT COUNT(*) AS anzahl_bekannter_autoren
+FROM (
+    SELECT  a.autoren_id
+    FROM    autoren              a
+    JOIN    autoren_has_buecher  ab ON a.autoren_id = ab.autoren_autoren_id
+    GROUP BY a.autoren_id
+    HAVING  COUNT(*) > 4
+) AS bekannte_autoren;
+SELECT AVG(avg_gewinn) AS gesamt_ø_gewinn_der_verlage
+FROM (
+    SELECT  v.verlage_id,
+            v.name,
+            AVG(b.verkaufspreis - b.einkaufspreis) AS avg_gewinn
+    FROM    verlage v
+    JOIN    buecher  b ON v.verlage_id = b.verlage_verlage_id
+    GROUP BY v.verlage_id, v.name
+    HAVING  avg_gewinn < 10                  
+) AS schwachverdiener;
 ```
 # Tag 7
 ## Backup Konzepte
