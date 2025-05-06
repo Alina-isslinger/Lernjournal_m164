@@ -216,7 +216,6 @@ ALTER TABLE `tbl_disponent`
     FOREIGN KEY (`MA_ID`) REFERENCES `tbl_Mitarbeiter`(`MA_ID`);
 # Tag 3
 # Repetition M162 Datentypen
-
 ## Datentypen in MariaDB (MySQL)
 
 | Datentyp                                | MariaDB (MySQL)               | Beispiel           | Bemerkung / Einstellungen         |
@@ -259,6 +258,87 @@ CREATE TABLE tbl_Mitarbeiter (
     FS_Vorgesetzter INT,  
     FOREIGN KEY (FS_Vorgesetzter) REFERENCES tbl_Mitarbeiter(ID)
 );
+## Insert into
+````sql 
+INSERT INTO customers
+VALUES (NULL, 'Heinrich', 'Schmitt', 2, 'Zürich');
+INSERT INTO customers
+VALUES (NULL, 'Sabine', 'Müller', 2, 'Bern');
+INSERT INTO customers
+VALUES (NULL, 'Markus', 'Mustermann', 1, 'Wien');
+INSERT INTO customers (first_name, last_name)
+VALUES ('Herr', 'Maier');
+INSERT INTO customers (first_name, last_name, country_id, city)
+VALUES ('Herr', 'Bulgur', 2, 'Sirnach');
+INSERT INTO customers (first_name, last_name)
+VALUES ('Maria', 'Manta');
+INSERT INTO customers (last_name, city, country_id)
+VALUES ('Fesenkampp', 'Duisburg', 3);
+INSERT INTO customers (first_name)
+VALUES ('Herbert');
+INSERT INTO customers (last_name, first_name, city, country_id)
+VALUES ('Schulter', 'Albert', 'Duisburg', 4);
+INSERT INTO customers (first_name, last_name, country_id, city)
+VALUES ('Brunhild', 'Sulcher', 1, 'Süderstade');
+INSERT INTO customers
+VALUES (NULL, 'Jochen', 'Schmied', 2, 'Solingen');
+INSERT INTO customers
+VALUES (NULL, '', 'Doppelbrecher', 2, NULL);
+INSERT INTO customers (last_name, city, country_id)
+VALUES ('Christoph', 'Fesenkampp', 3);
+INSERT INTO customers (first_name)
+VALUES ('Herbert');
+INSERT INTO customers (last_name, first_name, city, country_id)
+VALUES ('Schulter', 'Albert', 'Duisburg', 1);
+INSERT INTO customers
+VALUES (NULL, 'Brunhild', 'Sulcher', 1, 'Süderstade');
+INSERT INTO customers
+VALUES (NULL, 'Jochen', 'Schmied', 2, 'Solingen');
+````
+## Select
+````sql
+SELECT *
+FROM dvd_collection;
+SELECT title, id
+FROM dvd_collection;
+SELECT title, director
+FROM dvd_collection;
+SELECT *
+FROM dvd_collection
+WHERE director = 'Quentin Tarantino';
+SELECT *
+FROM dvd_collection
+WHERE director = 'Steven Spielberg';
+SELECT *
+FROM dvd_collection
+WHERE director LIKE 'Steven %';
+SELECT *
+FROM dvd_collection
+WHERE duration_minutes > 120;
+SELECT *
+FROM dvd_collection
+WHERE director IN ('Quentin Tarantino', 'Steven Spielberg');
+SELECT *
+FROM dvd_collection
+WHERE director = 'Quentin Tarantino'
+  AND duration_minutes < 90;
+SELECT *
+FROM dvd_collection
+WHERE title LIKE '%Sibirien%';
+SELECT *
+FROM dvd_collection
+WHERE title LIKE 'Das grosse Rennen%';
+SELECT *
+FROM dvd_collection
+ORDER BY director;
+SELECT *
+FROM dvd_collection
+ORDER BY director, title;
+SELECT *
+FROM dvd_collection
+WHERE director = 'Quentin Tarantino'
+ORDER BY duration_minutes DESC;
+````
 # Tag 4
 ## LB1
 ## Mengenlehre
